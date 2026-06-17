@@ -85,10 +85,12 @@
 
         <div class="grid grid-cols-1 gap-2">
           <!-- Start Station -->
-          <div>
+          <div class="relative">
             <span class="text-xs font-semibold text-slate-500">출발역</span>
-            <input type="text" id="start-station-input" readonly placeholder="신속 검색창에서 역을 선택하세요" 
-              class="w-full mt-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-800 focus:outline-none">
+            <input type="text" id="start-station-input" placeholder="출발역 이름을 입력하세요" 
+              class="w-full mt-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+            <!-- Auto-suggest Dropdown for Start Station -->
+            <div id="start-suggest" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl hidden z-50"></div>
           </div>
 
           <!-- Flip Button -->
@@ -99,10 +101,12 @@
           </div>
 
           <!-- End Station -->
-          <div>
+          <div class="relative">
             <span class="text-xs font-semibold text-slate-500">도착역</span>
-            <input type="text" id="end-station-input" readonly placeholder="신속 검색창에서 역을 선택하세요" 
-              class="w-full mt-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-800 focus:outline-none">
+            <input type="text" id="end-station-input" placeholder="도착역 이름을 입력하세요" 
+              class="w-full mt-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+            <!-- Auto-suggest Dropdown for End Station -->
+            <div id="end-suggest" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl hidden z-50"></div>
           </div>
         </div>
 
@@ -151,7 +155,7 @@
 
     <!-- Info / Footer -->
     <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-400 flex flex-col gap-1 select-none">
-      <p><i class="fa-solid fa-magnifying-glass"></i> 신속 검색을 통해 가고자 하는 역명을 쉽게 입력해 보세요.</p>
+      <p><i class="fa-solid fa-magnifying-glass"></i> 입력창 또는 신속 검색창에서 가고자 하는 역명을 쉽게 입력해 보세요.</p>
       <p><i class="fa-solid fa-hand"></i> 우측 지도 이미지는 마우스 휠 및 드래그로 자유로운 축척 제어가 가능합니다.</p>
     </div>
   </aside>
@@ -194,7 +198,6 @@
   </div>
 
   <script>
-    // --- SUBWAY SYSTEM METADATA AND GRAPH DEFINITIONS ---
     let STATIONS = {};
     let CONNECTIONS = [];
     let CURRENT_REGION = 'seoul';
@@ -247,7 +250,7 @@
       "line2_1": ["성수-용답-신답-용두-신설동"],
       "line2_2": ["신도림-도림천-양천구청-신정네거리-까치산"],
       "line3": ["대화-주엽-정발산-마두-백석-대곡-화정-원당-원흥-삼송-지축-구파발-연신내-불광-녹번-홍제-무악재-독립문-경복궁-안국-종로3가-을지로3가-충무로-동대입구-약수-금호-옥수-압구정-신사-잠원-고속터미널-교대-남부터미널-양재-매봉-도곡-대치-학여울-대청-일원-수서-가락시장-경찰병원-오금"],
-      "line4": ["진접-오남-별내별가람-당고개-상계-노원-창동-쌍문-수유-미아-미아사거리-길음-성신여대입구-한성대입구-혜화-동대문-동대문역사문화공원-충무로-명동-회현-서울-숙대입구-삼각지-신용산-이촌-동작-총신대입구(이수)-사당-남태령-선바위-경마공원-대공원-과천-정부과천청사-인덕원-평촌-범계-금정-산본-수리산-대야미-반월-상록수-한대앞-중앙-고잔-초지-안산-신길온천-정왕-오이도"],
+      "line4": ["진접-오남-별내별가람-불암산-상계-노원-창동-쌍문-수유-미아-미아사거리-길음-성신여대입구-한성대입구-혜화-동대문-동대문역사문화공원-충무로-명동-회현-서울-숙대입구-삼각지-신용산-이촌-동작-총신대입구(이수)-사당-남태령-선바위-경마공원-대공원-과천-정부과천청사-인덕원-평촌-범계-금정-산본-수리산-대야미-반월-상록수-한대앞-중앙-고잔-초지-안산-신길온천-정왕-오이도"],
       "line5": ["방화-개화산-김포공항-송정-마곡-발산-우장산-화곡-까치산-신정-목동-오목교-양평(5호선)-영등포구청-영등포시장-신길-여의도-여의나루-마포-공덕-애오개-충정로-서대문-광화문-종로3가-을지로4가-동대문역사문화공원-청구-신금호-행당-왕십리-마장-답십리-장한평-군자-아차산-광나루-천호-강동-길동-굽은다리-명일-고덕-상일동-강일-미사-하남풍산-하남시청-하남검단산"],
       "line5_1": ["강동-둔촌동-올림픽공원-방이-오금-개롱-거여-마천"],
       "line6": ["응암-역촌-불광-독바위-연신내-구산-응암-새절-증산-디지털미디어시티-월드컵경기장-마포구청-망원-합정-상수-광흥창-대흥-공덕-효창공원앞-삼각지-녹사평-이태원-한강진-버티고개-약수-청구-신당-동묘앞-창신-보문-안암-고려대-월곡-상월곡-돌곶이-석계-태릉입구-화랑대-봉화산-신내"],
@@ -286,7 +289,6 @@
       "busan": "https://i.namu.wiki/i/t9mHLJPlaLM_ynT-S57nyQ_ToxL3r5wi7qKmRGFdDpPMDv8UtJ1_g7CNYhimc1LqIgfb7D2Upmj3Kw5EDGpn4A.svg"
     };
 
-    // Parser: Dynamically populates STATIONS and CONNECTIONS based on selected Region
     function buildGraph(networkData, linesData) {
       STATIONS = {};
       CONNECTIONS = [];
@@ -302,12 +304,10 @@
             if (!STATIONS[sName]) {
               STATIONS[sName] = { name: sName, lines: [] };
             }
-            // Prevent duplicates in lines array
             if (!STATIONS[sName].lines.includes(baseLine)) {
               STATIONS[sName].lines.push(baseLine);
             }
             
-            // Bidirectional edge creation for routing
             if (i < stops.length - 1) {
               CONNECTIONS.push({
                 from: sName,
@@ -320,7 +320,7 @@
       });
     }
 
-    // Initialize Graph with default Seoul Data
+    // Initialize default Seoul Graph
     buildGraph(SEOUL_NETWORK, SEOUL_LINES);
 
     window.switchRegion = function(region) {
@@ -340,7 +340,6 @@
         btnSeoul.className = "flex-1 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-900";
       }
 
-      // Reset routing inputs and results safely
       try {
         clearStartStation();
         clearEndStation();
@@ -348,17 +347,13 @@
         document.getElementById("search-input").value = "";
       } catch(e) {}
 
-      // Rebuild components & load image
       loadMapImage();
       renderLegend();
     };
 
-    // DEFENSIVE STRIPING HELPER TO AVOID "역역" DUPLICATIONS
     function formatStationName(rawName) {
       if (!rawName) return "";
       let clean = rawName.trim();
-      
-      // If name has bracket details like "신촌(2호선)", normalize correctly to "신촌역(2호선)"
       return clean.replace(/^(.*?)(역)?(\s*\(.*?\))?$/, function(match, base, yeok, paren) {
         return base + "역" + (paren || "");
       });
@@ -369,15 +364,12 @@
       return rawName.trim().replace(/역/g, "").toLowerCase();
     }
 
-    // --- STREAMING_CHUNK: Implementing the anchor zoom and pan logic... ---
-    // VIEWPORT IMAGE ZOOM & PAN LOGIC
     let scale = 1.0;
     let panX = 0;
     let panY = 0;
     let isDragging = false;
     let startX = 0, startY = 0;
 
-    // Track pinch details for mobile gestures
     let touchStartDist = 0;
     let imgXAtPinch = 0;
     let imgYAtPinch = 0;
@@ -389,14 +381,12 @@
       mapImg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
     }
 
-    // Calculate initial scale to center and fit the loaded map image perfectly
     function centerImage() {
       const containerWidth = mapContainer.clientWidth;
       const containerHeight = mapContainer.clientHeight;
       const imgWidth = mapImg.naturalWidth || mapImg.offsetWidth || 1500;
       const imgHeight = mapImg.naturalHeight || mapImg.offsetHeight || 1500;
 
-      // Determine initial scale to fit gracefully (approx 85% of viewport width)
       scale = (containerWidth / imgWidth) * 0.85;
       scale = Math.max(0.15, Math.min(scale, 8.0));
 
@@ -412,11 +402,9 @@
       }
     }
 
-    // Centering trigger when image load is finished
     mapImg.onload = centerImage;
     window.addEventListener('resize', centerImage);
 
-    // Mouse Panning Controls
     mapContainer.addEventListener('mousedown', (e) => {
       isDragging = true;
       startX = e.clientX - panX;
@@ -436,7 +424,6 @@
       mapContainer.style.cursor = 'grab';
     });
 
-    // Mathematically perfect anchor-based Zoom on Mouse Wheel
     mapContainer.addEventListener('wheel', (e) => {
       e.preventDefault();
       const zoomFactor = 1.15;
@@ -444,7 +431,6 @@
       const mouseX = e.clientX - rect.left;
       const mouseY = e.clientY - rect.top;
 
-      // Map coordinate under cursor before scaling
       const imgX = (mouseX - panX) / scale;
       const imgY = (mouseY - panY) / scale;
 
@@ -455,7 +441,6 @@
         newScale = Math.max(scale / zoomFactor, 0.15);
       }
 
-      // Readjust translations so the same image coordinate remains exactly under cursor
       panX = mouseX - imgX * newScale;
       panY = mouseY - imgY * newScale;
       scale = newScale;
@@ -463,7 +448,6 @@
       updateTransform();
     }, { passive: false });
 
-    // Multi-touch Pinch Zoom and Drag controls for Mobile viewports
     mapContainer.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
         isDragging = true;
@@ -476,7 +460,6 @@
           e.touches[0].clientY - e.touches[1].clientY
         );
 
-        // Find midpoint of pinch touch coordinates
         const touchStartMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
         const touchStartMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
         const rect = mapContainer.getBoundingClientRect();
@@ -484,7 +467,6 @@
         const midX = touchStartMidX - rect.left;
         const midY = touchStartMidY - rect.top;
 
-        // Remember the underlying image point for perfect pinch-anchoring
         imgXAtPinch = (midX - panX) / scale;
         imgYAtPinch = (midY - panY) / scale;
       }
@@ -503,7 +485,6 @@
         const factor = dist / touchStartDist;
         const newScale = Math.max(0.15, Math.min(scale * factor, 8.0));
 
-        // Midpoint of current fingers
         const currentMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
         const currentMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
         const rect = mapContainer.getBoundingClientRect();
@@ -511,7 +492,6 @@
         const midX = currentMidX - rect.left;
         const midY = currentMidY - rect.top;
 
-        // Lock midpoint positions mathematically
         panX = midX - imgXAtPinch * newScale;
         panY = midY - imgYAtPinch * newScale;
         
@@ -525,7 +505,6 @@
       isDragging = false;
     });
 
-    // Control buttons events (Zooms relative to viewport center)
     document.getElementById("zoom-in").addEventListener("click", () => {
       const rect = mapContainer.getBoundingClientRect();
       const midX = rect.width / 2;
@@ -556,94 +535,182 @@
       centerImage();
     });
 
-    // --- DIJKSTRA PATHFINDING CALCULATIONS ENGINE ---
     function buildAdjacencyList() {
       const graph = {};
       Object.keys(STATIONS).forEach(key => {
         graph[key] = [];
       });
       CONNECTIONS.forEach(conn => {
-        graph[conn.from].push({ to: conn.to, weight: 2.5, line: conn.line });
-        graph[conn.to].push({ to: conn.from, weight: 2.5, line: conn.line });
+        if (graph[conn.from] && graph[conn.to]) {
+          graph[conn.from].push({ to: conn.to, weight: 2.5, line: conn.line });
+          graph[conn.to].push({ to: conn.from, weight: 2.5, line: conn.line });
+        }
       });
       return graph;
     }
 
     function findShortestPath(startKey, endKey) {
-      const graph = buildAdjacencyList();
-      const distances = {};
-      const previous = {};
-      const previousLine = {};
-      const pq = [];
+      try {
+        if (!startKey || !endKey || !STATIONS[startKey] || !STATIONS[endKey]) {
+          return null;
+        }
 
-      Object.keys(STATIONS).forEach(node => {
-        distances[node] = Infinity;
-        previous[node] = null;
-        previousLine[node] = null;
-      });
+        const graph = buildAdjacencyList();
+        const distances = {};
+        const previous = {};
+        const previousLine = {};
+        const pq = [];
 
-      distances[startKey] = 0;
-      pq.push({ node: startKey, dist: 0 });
+        Object.keys(STATIONS).forEach(node => {
+          distances[node] = Infinity;
+          previous[node] = null;
+          previousLine[node] = null;
+        });
 
-      while (pq.length > 0) {
-        pq.sort((a, b) => a.dist - b.dist);
-        const { node: currNode, dist: currDist } = pq.shift();
+        distances[startKey] = 0;
+        pq.push({ node: startKey, dist: 0 });
 
-        if (currDist > distances[currNode]) continue;
-        if (currNode === endKey) break;
+        let iterations = 0;
+        const maxLimit = Object.keys(STATIONS).length * 2;
 
-        const neighbors = graph[currNode] || [];
-        for (const edge of neighbors) {
-          let edgeWeight = edge.weight;
+        while (pq.length > 0 && iterations < maxLimit) {
+          iterations++;
+          pq.sort((a, b) => a.dist - b.dist);
+          const { node: currNode, dist: currDist } = pq.shift();
 
-          // Introduce transfer overhead dynamically (5 mins penalty)
-          const incomingLine = previousLine[currNode];
-          if (incomingLine && incomingLine !== edge.line) {
-            edgeWeight += 5.0;
-          }
+          if (currDist > distances[currNode]) continue;
+          if (currNode === endKey) break;
 
-          const alt = distances[currNode] + edgeWeight;
-          if (alt < distances[edge.to]) {
-            distances[edge.to] = alt;
-            previous[edge.to] = currNode;
-            previousLine[edge.to] = edge.line;
-            pq.push({ node: edge.to, dist: alt });
+          const neighbors = graph[currNode] || [];
+          for (const edge of neighbors) {
+            let edgeWeight = edge.weight || 2.5;
+
+            // Apply line transfer penalty (5 min virtual weight)
+            const incomingLine = previousLine[currNode];
+            if (incomingLine && incomingLine !== edge.line) {
+              edgeWeight += 5.0;
+            }
+
+            const alt = distances[currNode] + edgeWeight;
+            if (alt < distances[edge.to]) {
+              distances[edge.to] = alt;
+              previous[edge.to] = currNode;
+              previousLine[edge.to] = edge.line;
+              pq.push({ node: edge.to, dist: alt });
+            }
           }
         }
+
+        if (distances[endKey] === Infinity) {
+          return null;
+        }
+
+        const path = [];
+        let current = endKey;
+        let loopGuard = 0;
+        while (current !== null && loopGuard < 1000) {
+          path.unshift(current);
+          current = previous[current];
+          loopGuard++;
+        }
+
+        const edgesUsed = [];
+        for (let i = 0; i < path.length - 1; i++) {
+          const from = path[i];
+          const to = path[i+1];
+          const edgeDetails = CONNECTIONS.find(c => 
+            (c.from === from && c.to === to) || (c.from === to && c.to === from)
+          );
+          edgesUsed.push({
+            from,
+            to,
+            line: edgeDetails ? edgeDetails.line : null
+          });
+        }
+
+        return {
+          path,
+          edges: edgesUsed,
+          distance: distances[endKey],
+          stopsCount: path.length - 1
+        };
+      } catch (err) {
+        console.error("Pathfinding error:", err);
+        return null;
       }
-
-      const path = [];
-      let current = endKey;
-      while (current !== null) {
-        path.unshift(current);
-        current = previous[current];
-      }
-
-      if (distances[endKey] === Infinity) return null;
-
-      const edgesUsed = [];
-      for (let i = 0; i < path.length - 1; i++) {
-        const from = path[i];
-        const to = path[i+1];
-        const edgeDetails = CONNECTIONS.find(c => 
-          (c.from === from && c.to === to) || (c.from === to && c.to === from)
-        );
-        edgesUsed.push({
-          from,
-          to,
-          line: edgeDetails ? edgeDetails.line : null
-        });
-      }
-
-      return {
-        path,
-        edges: edgesUsed,
-        distance: distances[endKey],
-        stopsCount: path.length - 1
-      };
     }
 
-    // --- UX INTERACTION & AUTOCOMPLETE SEARCH LOGIC ---
+    function renderRoutingResults(route) {
+      try {
+        if (!route || !route.path || !route.edges) {
+          return;
+        }
+
+        let transfers = 0;
+        let prevLine = null;
+        let realTimeEstimate = 0;
+
+        route.edges.forEach((edge, i) => {
+          if (edge) {
+            if (i > 0 && edge.line !== prevLine) {
+              transfers++;
+              realTimeEstimate += 4.5;
+            }
+            realTimeEstimate += 2.5;
+            prevLine = edge.line;
+          }
+        });
+
+        const routeTimeEl = document.getElementById("route-time");
+        const routeStopsEl = document.getElementById("route-stops");
+        const routeTransfersEl = document.getElementById("route-transfers");
+
+        if (routeTimeEl) routeTimeEl.innerText = `${Math.ceil(realTimeEstimate)}분`;
+        if (routeStopsEl) routeStopsEl.innerText = `${route.stopsCount}개 역`;
+        if (routeTransfersEl) routeTransfersEl.innerText = `${transfers}회`;
+
+        const pathList = document.getElementById("route-path-list");
+        if (pathList) {
+          pathList.innerHTML = "";
+
+          route.path.forEach((stationKey, index) => {
+            const station = STATIONS[stationKey];
+            if (!station) return;
+
+            const step = document.createElement("div");
+            step.className = "flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0";
+
+            let currentStatusBadge = "";
+            if (index < route.path.length - 1) {
+              const edge = route.edges[index];
+              const lineMeta = edge ? LINES[edge.line] : null;
+              const color = lineMeta ? lineMeta.color : "#64748b";
+              const name = lineMeta ? lineMeta.name : "지하철";
+              currentStatusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] text-white font-bold" style="background-color: ${color}">${name} 승차</span>`;
+            } else {
+              currentStatusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-bold">도착</span>`;
+            }
+
+            step.innerHTML = `
+              <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full ${index === 0 ? 'bg-indigo-600' : (index === route.path.length-1 ? 'bg-rose-500' : 'bg-slate-300')}"></span>
+                <span class="font-bold text-slate-700">${formatStationName(station.name)}</span>
+              </div>
+              <div>${currentStatusBadge}</div>
+            `;
+            pathList.appendChild(step);
+          });
+        }
+
+        const routeResultPanel = document.getElementById("route-result");
+        if (routeResultPanel) {
+          routeResultPanel.classList.remove("hidden");
+        }
+      } catch (err) {
+        console.error("Rendering routing results panel error:", err);
+      }
+    }
+
     let startStationKey = null;
     let endStationKey = null;
 
@@ -656,13 +723,17 @@
     });
 
     function setStartStation(key) {
-      startStationKey = key;
-      document.getElementById("start-station-input").value = formatStationName(STATIONS[key].name);
+      if (STATIONS[key]) {
+        startStationKey = key;
+        document.getElementById("start-station-input").value = formatStationName(STATIONS[key].name);
+      }
     }
 
     function setEndStation(key) {
-      endStationKey = key;
-      document.getElementById("end-station-input").value = formatStationName(STATIONS[key].name);
+      if (STATIONS[key]) {
+        endStationKey = key;
+        document.getElementById("end-station-input").value = formatStationName(STATIONS[key].name);
+      }
     }
 
     function clearStartStation() {
@@ -675,7 +746,6 @@
       document.getElementById("end-station-input").value = "";
     }
 
-    // Dynamic Legend Renderer
     function renderLegend() {
       const container = document.getElementById("legend-container");
       container.innerHTML = "";
@@ -690,73 +760,98 @@
       });
     }
 
-    // Search Box Dropdown & Dynamic Auto-suggest Event
-    const searchInput = document.getElementById("search-input");
-    const searchSuggest = document.getElementById("search-suggest");
+    function registerAutocomplete(inputId, suggestId, onSelectCallback) {
+      const input = document.getElementById(inputId);
+      const suggest = document.getElementById(suggestId);
 
-    searchInput.addEventListener("input", (e) => {
-      const query = getSearchableName(e.target.value);
-      if (!query) {
-        searchSuggest.classList.add("hidden");
+      input.addEventListener("input", (e) => {
+        const query = getSearchableName(e.target.value);
+        if (!query) {
+          suggest.classList.add("hidden");
+          return;
+        }
+
+        const filtered = Object.entries(STATIONS).filter(([key, value]) => {
+          return getSearchableName(value.name).includes(query);
+        }).slice(0, 8);
+
+        if (filtered.length === 0) {
+          suggest.innerHTML = `<div class="p-3 text-xs text-slate-400">검색 결과가 없습니다.</div>`;
+        } else {
+          suggest.innerHTML = "";
+          filtered.forEach(([key, value]) => {
+            const item = document.createElement("div");
+            item.className = "p-3 text-xs hover:bg-slate-100 cursor-pointer transition flex justify-between items-center border-b border-slate-100 last:border-0 text-slate-700";
+            
+            let lineBadges = "";
+            value.lines.forEach(lineKey => {
+              const lineMeta = LINES[lineKey];
+              if (lineMeta) {
+                lineBadges += `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] text-white font-bold mr-1 shrink-0" style="background-color: ${lineMeta.color}">${lineMeta.name}</span>`;
+              }
+            });
+
+            item.innerHTML = `
+              <span class="font-bold text-slate-700">${formatStationName(value.name)}</span>
+              <div class="flex items-center overflow-x-auto max-w-[120px]">${lineBadges}</div>
+            `;
+
+            item.addEventListener("click", () => {
+              input.value = formatStationName(value.name);
+              suggest.classList.add("hidden");
+              onSelectCallback(key);
+            });
+            suggest.appendChild(item);
+          });
+        }
+        suggest.classList.remove("hidden");
+      });
+
+      // Show suggestions on click if empty or on focus
+      input.addEventListener("focus", () => {
+        const query = getSearchableName(input.value);
+        if (query) {
+          input.dispatchEvent(new Event('input'));
+        }
+      });
+
+      // Close suggest on click outside
+      document.addEventListener("click", (e) => {
+        if (!input.contains(e.target) && !suggest.contains(e.target)) {
+          suggest.classList.add("hidden");
+        }
+      });
+    }
+
+    // Register 3 Autocomplete Dropdowns
+    registerAutocomplete("search-input", "search-suggest", (key) => {
+      document.getElementById("search-input").value = "";
+      if (!startStationKey) {
+        setStartStation(key);
+      } else if (!endStationKey) {
+        if (key === startStationKey) {
+          showAlert("출발역과 도착역은 같을 수 없습니다.");
+          return;
+        }
+        setEndStation(key);
+      } else {
+        setStartStation(key);
+        clearEndStation();
+      }
+    });
+
+    registerAutocomplete("start-station-input", "start-suggest", (key) => {
+      setStartStation(key);
+    });
+
+    registerAutocomplete("end-station-input", "end-suggest", (key) => {
+      if (key === startStationKey) {
+        showAlert("출발역과 도착역은 같을 수 없습니다.");
         return;
       }
-
-      const filtered = Object.entries(STATIONS).filter(([key, value]) => {
-        return getSearchableName(value.name).includes(query);
-      }).slice(0, 8);
-
-      if (filtered.length === 0) {
-        searchSuggest.innerHTML = `<div class="p-3 text-xs text-slate-400">검색 결과가 없습니다.</div>`;
-      } else {
-        searchSuggest.innerHTML = "";
-        filtered.forEach(([key, value]) => {
-          const item = document.createElement("div");
-          item.className = "p-3 text-xs hover:bg-slate-50 cursor-pointer transition flex justify-between items-center border-b border-slate-100 last:border-0";
-          
-          let lineBadges = "";
-          value.lines.forEach(lineKey => {
-            const lineMeta = LINES[lineKey];
-            if (lineMeta) {
-              lineBadges += `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] text-white font-bold mr-1 shrink-0" style="background-color: ${lineMeta.color}">${lineMeta.name}</span>`;
-            }
-          });
-
-          item.innerHTML = `
-            <span class="font-bold text-slate-700">${formatStationName(value.name)}</span>
-            <div class="flex items-center overflow-x-auto max-w-[120px]">${lineBadges}</div>
-          `;
-
-          item.addEventListener("click", () => {
-            searchInput.value = "";
-            searchSuggest.classList.add("hidden");
-            
-            // Set Start first. If start exists, set End.
-            if (!startStationKey) {
-              setStartStation(key);
-            } else if (!endStationKey) {
-              if (key === startStationKey) {
-                showAlert("출발역과 도착역은 같을 수 없습니다.");
-                return;
-              }
-              setEndStation(key);
-            } else {
-              setStartStation(key);
-              clearEndStation();
-            }
-          });
-          searchSuggest.appendChild(item);
-        });
-      }
-      searchSuggest.classList.remove("hidden");
+      setEndStation(key);
     });
 
-    document.addEventListener("click", (e) => {
-      if (!searchInput.contains(e.target) && !searchSuggest.contains(e.target)) {
-        searchSuggest.classList.add("hidden");
-      }
-    });
-
-    // Swap Source & Destination Event Listener
     document.getElementById("btn-swap-stations").addEventListener("click", () => {
       const sTemp = startStationKey;
       const eTemp = endStationKey;
@@ -766,14 +861,12 @@
       if (sTemp) setEndStation(sTemp);
     });
 
-    // Reset Route Planner
     document.getElementById("btn-reset-route").addEventListener("click", () => {
       clearStartStation();
       clearEndStation();
       document.getElementById("route-result").classList.add("hidden");
     });
 
-    // Route Calculation Trigger
     document.getElementById("btn-find-route").addEventListener("click", () => {
       if (!startStationKey || !endStationKey) {
         showAlert("출발역과 도착역을 지정하셔야 경로 탐색이 가능합니다.");
@@ -789,57 +882,6 @@
       renderRoutingResults(routeResult);
     });
 
-    function renderRoutingResults(route) {
-      let transfers = 0;
-      let prevLine = null;
-      let realTimeEstimate = 0;
-
-      route.edges.forEach((edge, i) => {
-        if (i > 0 && edge.line !== prevLine) {
-          transfers++;
-          realTimeEstimate += 4.5; // Adding transfer walk penalty
-        }
-        realTimeEstimate += 2.5; // Average station-to-station gap
-        prevLine = edge.line;
-      });
-
-      // Update Panel metrics
-      document.getElementById("route-time").innerText = `${Math.ceil(realTimeEstimate)}분`;
-      document.getElementById("route-stops").innerText = `${route.stopsCount}개 역`;
-      document.getElementById("route-transfers").innerText = `${transfers}회`;
-
-      // Fill Detailed Steps
-      const pathList = document.getElementById("route-path-list");
-      pathList.innerHTML = "";
-
-      route.path.forEach((stationKey, index) => {
-        const station = STATIONS[stationKey];
-        const step = document.createElement("div");
-        step.className = "flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0";
-
-        let currentStatusBadge = "";
-        if (index < route.path.length - 1) {
-          const edge = route.edges[index];
-          const lineMeta = LINES[edge.line];
-          currentStatusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] text-white font-bold" style="background-color: ${lineMeta?.color}">${lineMeta?.name} 승차</span>`;
-        } else {
-          currentStatusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-bold">도착</span>`;
-        }
-
-        step.innerHTML = `
-          <div class="flex items-center gap-2">
-            <span class="w-2 h-2 rounded-full ${index === 0 ? 'bg-indigo-600' : (index === route.path.length-1 ? 'bg-rose-500' : 'bg-slate-300')}"></span>
-            <span class="font-bold text-slate-700">${formatStationName(station.name)}</span>
-          </div>
-          <div>${currentStatusBadge}</div>
-        `;
-        pathList.appendChild(step);
-      });
-
-      document.getElementById("route-result").classList.remove("hidden");
-    }
-
-    // On Load Initial Setup
     window.onload = function() {
       loadMapImage();
       renderLegend();
