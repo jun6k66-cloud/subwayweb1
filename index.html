@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>subwayweb Ver.2</title>
+  <title>SUBWAYWEB</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- FontAwesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    /* Custom Scrollbar for Light Theme */
+    /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -24,180 +24,170 @@
     ::-webkit-scrollbar-thumb:hover {
       background: #94a3b8;
     }
-    /* Grid Pattern Background for Canvas Viewport */
+    /* Grid Background */
     .bg-grid {
-      background-image: radial-gradient(rgba(148, 163, 184, 0.12) 1.5px, transparent 0);
-      background-size: 24px 24px;
-    }
-    /* Smooth transitions */
-    .smooth-transition {
-      transition: all 0.2s ease-in-out;
-    }
-    /* Image container limits */
-    #map-image {
-      max-width: none;
-      user-select: none;
-      -webkit-user-drag: none;
+      background-image: radial-gradient(rgba(15, 23, 42, 0.05) 1px, transparent 0);
+      background-size: 20px 20px;
     }
   </style>
 </head>
-<body class="bg-[#f8fafc] text-[#1e293b] font-sans overflow-hidden h-screen w-screen flex flex-col md:flex-row">
+<body class="bg-[#f8fafc] text-[#0f172a] font-sans overflow-hidden h-screen w-screen flex flex-col md:flex-row">
 
   <!-- Left Sidebar (Control Panel) -->
-  <aside class="w-full md:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col z-10 h-[45%] md:h-full shrink-0 shadow-lg">
-    <!-- Header -->
-    <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+  <aside class="w-full md:w-96 bg-white border-b md:border-b-0 md:border-r border-slate-200 flex flex-col z-10 h-2/5 md:h-full shrink-0 shadow-sm">
+    <!-- Header with Toggle Buttons -->
+    <div class="p-5 border-b border-slate-100 flex flex-col gap-3">
       <div class="flex items-center gap-2">
-        <i class="fa-solid fa-train-subway text-blue-600 text-2xl"></i>
-        <h1 class="text-base font-extrabold tracking-tight text-slate-800">SUBWAYWEB2</h1>
+        <i class="fa-solid fa-train-subway text-indigo-600 text-2xl"></i>
+        <h1 class="text-xl font-black tracking-tight text-slate-900">SUBWAYWEB</h1>
       </div>
-      <span class="text-xs bg-blue-50 text-blue-600 px-2.5 py-1 rounded-full font-bold">고화질 뷰어</span>
+      <!-- Region Selector -->
+      <div class="flex p-1 bg-slate-100 rounded-lg">
+        <button id="btn-seoul" onclick="window.switchRegion('seoul')" class="flex-1 py-1.5 text-xs font-bold rounded-md transition-all shadow-sm bg-white text-slate-900">
+          서울 지하철
+        </button>
+        <button id="btn-busan" onclick="window.switchRegion('busan')" class="flex-1 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-900">
+          부산 지하철
+        </button>
+      </div>
     </div>
 
-    <!-- Scrollable Control Panel Area -->
-    <div class="p-4 flex-1 overflow-y-auto space-y-4">
+    <!-- Search & Pathfinding Tab -->
+    <div class="p-5 flex-1 overflow-y-auto space-y-4">
       
+      <!-- Station Fast Search -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider">역 신속 검색</label>
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input type="text" id="search-input" placeholder="역 이름을 입력하세요" 
+            class="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500">
+          
+          <!-- Auto-suggest Dropdown -->
+          <div id="search-suggest" class="absolute left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-slate-200 rounded-lg shadow-xl hidden z-50">
+            <!-- Dynamic items -->
+          </div>
+        </div>
+      </div>
+
       <!-- Route Planner Form -->
-      <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3 shadow-sm">
-        <div class="flex items-center justify-between border-b border-slate-200/50 pb-2">
-          <h3 class="text-sm font-bold text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-route text-blue-600"></i> 실시간 최단 경로 검색
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-200 pb-2">
+          <h3 class="text-sm font-bold text-indigo-600 flex items-center gap-1.5">
+            <i class="fa-solid fa-route"></i> 최단 경로 탐색
           </h3>
-          <button id="btn-reset-route" class="text-xs text-rose-500 hover:text-rose-700 font-bold flex items-center gap-1 transition-all">
+          <button id="btn-reset-route" class="text-xs text-rose-500 hover:underline flex items-center gap-1">
             <i class="fa-solid fa-rotate-left"></i> 초기화
           </button>
         </div>
 
-        <div class="grid grid-cols-1 gap-2 relative">
-          <!-- Start Station Field -->
-          <div class="relative">
-            <span class="text-[11px] font-bold text-slate-400 block mb-1">출발역</span>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                <i class="fa-solid fa-circle-play text-emerald-500"></i>
-              </span>
-              <input type="text" id="start-input" placeholder="출발역 이름을 입력하세요" 
-                class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
-            </div>
-            <!-- Start Suggest Dropdown -->
-            <div id="start-suggest" class="absolute left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50"></div>
+        <div class="grid grid-cols-1 gap-2">
+          <!-- Start Station -->
+          <div>
+            <span class="text-xs font-semibold text-slate-500">출발역</span>
+            <input type="text" id="start-station-input" readonly placeholder="신속 검색창에서 역을 선택하세요" 
+              class="w-full mt-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-800 focus:outline-none">
           </div>
 
-          <!-- Swap Button -->
-          <div class="flex justify-center my-0.5">
-            <button id="btn-swap-stations" class="p-1.5 rounded-full bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:shadow-md transition-all">
+          <!-- Flip Button -->
+          <div class="flex justify-center -my-1">
+            <button id="btn-swap-stations" class="p-1.5 rounded bg-white border border-slate-200 text-slate-500 hover:text-slate-800 hover:border-slate-300 transition shadow-sm">
               <i class="fa-solid fa-up-down text-xs"></i>
             </button>
           </div>
 
-          <!-- End Station Field -->
-          <div class="relative">
-            <span class="text-[11px] font-bold text-slate-400 block mb-1">도착역</span>
-            <div class="relative">
-              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                <i class="fa-solid fa-circle-stop text-rose-500"></i>
-              </span>
-              <input type="text" id="end-input" placeholder="도착역 이름을 입력하세요" 
-                class="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all shadow-sm">
-            </div>
-            <!-- End Suggest Dropdown -->
-            <div id="end-suggest" class="absolute left-0 right-0 mt-1 max-h-40 overflow-y-auto bg-white border border-slate-200 rounded-xl shadow-xl hidden z-50"></div>
+          <!-- End Station -->
+          <div>
+            <span class="text-xs font-semibold text-slate-500">도착역</span>
+            <input type="text" id="end-station-input" readonly placeholder="신속 검색창에서 역을 선택하세요" 
+              class="w-full mt-1 px-3 py-2 bg-white border border-slate-200 rounded-md text-sm text-slate-800 focus:outline-none">
           </div>
         </div>
 
-        <button id="btn-find-route" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all text-sm flex items-center justify-center gap-2 shadow-md">
-          <i class="fa-solid fa-compass"></i> 최적 경로 탐색하기
+        <button id="btn-find-route" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-lg transition text-sm flex items-center justify-center gap-2 shadow-sm">
+          <i class="fa-solid fa-compass"></i> 경로 탐색 시작
         </button>
       </div>
 
-      <!-- Search Result Panel -->
-      <div id="route-result" class="hidden bg-slate-50 p-4 rounded-2xl border border-slate-200/60 space-y-3 shadow-sm">
-        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">탐색 결과 분석</h4>
+      <!-- Search Result / Details Panel -->
+      <div id="route-result" class="hidden bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-3">
+        <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider">탐색 결과</h4>
         
-        <div class="grid grid-cols-3 gap-2 bg-white border border-slate-100 p-3 rounded-xl shadow-inner text-center">
+        <div class="grid grid-cols-3 gap-2 bg-white p-3 rounded-lg border border-slate-100 text-center shadow-sm">
           <div>
-            <span class="text-[10px] font-bold text-slate-400 block">소요 시간</span>
-            <div class="text-base font-extrabold text-emerald-600" id="route-time">--분</div>
+            <span class="text-[10px] text-slate-400 block font-semibold">소요 시간</span>
+            <div class="text-base font-black text-indigo-600" id="route-time">--분</div>
           </div>
           <div class="border-x border-slate-100">
-            <span class="text-[10px] font-bold text-slate-400 block">정거장 수</span>
-            <div class="text-base font-extrabold text-indigo-600" id="route-stops">--개 역</div>
+            <span class="text-[10px] text-slate-400 block font-semibold">정거장 수</span>
+            <div class="text-base font-black text-slate-700" id="route-stops">--개 역</div>
           </div>
           <div>
-            <span class="text-[10px] font-bold text-slate-400 block">환승 횟수</span>
-            <div class="text-base font-extrabold text-rose-500" id="route-transfers">--회</div>
+            <span class="text-[10px] text-slate-400 block font-semibold">환승 횟수</span>
+            <div class="text-base font-black text-rose-500" id="route-transfers">--회</div>
           </div>
         </div>
 
         <!-- Detail path list -->
-        <div class="space-y-1.5">
-          <span class="text-xs text-slate-500 font-bold">상세 이동 동선</span>
-          <div id="route-path-list" class="max-h-48 overflow-y-auto border border-slate-200/50 rounded-xl p-3 space-y-2.5 bg-white text-xs shadow-inner">
-            <!-- Dynamic list injected here -->
+        <div class="space-y-1">
+          <span class="text-xs text-slate-500 font-bold">상세 경로</span>
+          <div id="route-path-list" class="max-h-48 overflow-y-auto border border-slate-200 rounded-lg p-2.5 space-y-2 bg-white text-xs">
+            <!-- Dynamic route list -->
           </div>
         </div>
       </div>
 
-      <!-- Quick Legend Grid -->
-      <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200/60 space-y-2 shadow-sm">
-        <span class="text-xs font-bold text-slate-500 block">수도권 주요 노선 범례 (경전철 포함)</span>
-        <div class="grid grid-cols-2 gap-1.5 text-[11px] max-h-36 overflow-y-auto pr-1" id="legend-container">
-          <!-- Dynamic legend injected here -->
+      <!-- Quick Legend Box -->
+      <div class="bg-slate-50 p-4 rounded-xl border border-slate-100 space-y-2">
+        <span class="text-xs font-bold text-slate-500 block">노선 분류</span>
+        <div class="grid grid-cols-2 gap-1.5 text-xs max-h-36 overflow-y-auto pr-1" id="legend-container">
+          <!-- Dynamic legend -->
         </div>
       </div>
 
     </div>
 
     <!-- Info / Footer -->
-    <div class="p-4 bg-slate-50 border-t border-slate-200/60 text-[11px] text-slate-500 flex flex-col gap-1">
-      <p class="font-semibold"><i class="fa-solid fa-circle-info text-blue-500"></i> 노선 탐색 시 상세 동선과 소요 시간이 여기에 노출됩니다.</p>
-      <p><i class="fa-solid fa-arrows-up-down-left-right text-slate-400"></i> 우측 지도를 마우스 드래그로 움직이고 휠로 크기를 맞춰보세요.</p>
+    <div class="p-4 bg-slate-50 border-t border-slate-200 text-xs text-slate-400 flex flex-col gap-1 select-none">
+      <p><i class="fa-solid fa-magnifying-glass"></i> 신속 검색을 통해 가고자 하는 역명을 쉽게 입력해 보세요.</p>
+      <p><i class="fa-solid fa-hand"></i> 우측 지도 이미지는 마우스 휠 및 드래그로 자유로운 축척 제어가 가능합니다.</p>
     </div>
   </aside>
 
-  <!-- Right Main Area: High-Res Interactive Image Canvas Viewer -->
-  <main class="flex-1 relative bg-slate-100 bg-grid overflow-hidden h-[55%] md:h-full">
+  <!-- Right Main Area: Interactive Image Canvas (SVG / PNG Viewer) -->
+  <main class="flex-1 relative bg-[#f1f5f9] bg-grid overflow-hidden h-3/5 md:h-full select-none">
     
-    <!-- Top Left Help Banner -->
-    <div class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur border border-slate-200/80 px-4 py-2.5 rounded-2xl shadow-md pointer-events-none hidden sm:block">
-      <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
-        <i class="fa-solid fa-image text-blue-500"></i> 고해상도 공식 노선도 뷰어
-      </span>
-    </div>
-
-    <!-- Floating Viewport Control Buttons -->
-    <div class="absolute bottom-4 right-4 z-20 flex flex-col gap-2">
-      <button id="zoom-in" class="w-10 h-10 rounded-xl bg-white/95 backdrop-blur border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center shadow-lg transition-all" title="확대">
-        <i class="fa-solid fa-plus text-lg"></i>
+    <!-- Viewport Zoom Controls -->
+    <div class="absolute bottom-6 right-6 z-10 flex flex-col gap-2 shadow-md rounded-full">
+      <button id="zoom-in" class="w-11 h-11 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center shadow transition-all active:scale-95">
+        <i class="fa-solid fa-plus text-base"></i>
       </button>
-      <button id="zoom-out" class="w-10 h-10 rounded-xl bg-white/95 backdrop-blur border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center shadow-lg transition-all" title="축소">
-        <i class="fa-solid fa-minus text-lg"></i>
+      <button id="zoom-out" class="w-11 h-11 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center shadow transition-all active:scale-95">
+        <i class="fa-solid fa-minus text-base"></i>
       </button>
-      <button id="zoom-reset" class="w-10 h-10 rounded-xl bg-white/95 backdrop-blur border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center shadow-lg transition-all" title="맞춤">
-        <i class="fa-solid fa-arrows-to-eye text-lg text-blue-500"></i>
+      <button id="zoom-reset" class="w-11 h-11 rounded-full bg-white border border-slate-200 text-slate-700 hover:bg-slate-50 flex items-center justify-center shadow transition-all active:scale-95">
+        <i class="fa-solid fa-compress text-base"></i>
       </button>
     </div>
 
-    <!-- Interactive Canvas Viewer Wrapper -->
-    <div id="image-viewport" class="w-full h-full cursor-grab active:cursor-grabbing overflow-hidden relative">
-      <img id="map-image" 
-           src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FelsHz7%2FdJMcaiaXtuH%2FAAAAAAAAAAAAAAAAAAAAAMi-J6NXVzAcAfMYo5x1Q5AvkVw_urEeTHT9Z4Qyz3pk%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1782831599%26allow_ip%3D%26allow_referer%3D%26signature%3DdKZKKjdlAtv2Yerf7fMgq1A1L9U%253D" 
-           alt="수도권 광역 전철 노선도 원본 고해상도" 
-           class="absolute origin-top-left smooth-transition" 
-           style="transform: translate(0px, 0px) scale(1);">
+    <!-- Map Canvas Panning Container (Aligned to top-left to support mathematically perfect anchor zoom) -->
+    <div id="map-container" class="w-full h-full cursor-grab active:cursor-grabbing overflow-hidden relative">
+      <img id="subway-img" src="" alt="지하철 노선도" class="absolute top-0 left-0 max-w-none origin-top-left transition-transform duration-75 ease-out pointer-events-none select-none">
     </div>
 
   </main>
 
-  <!-- Custom Alert Overlay Dialog -->
+  <!-- Custom Alert Overlay -->
   <div id="custom-alert" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50 hidden">
-    <div class="bg-white border border-slate-100 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl space-y-4">
+    <div class="bg-white border border-slate-200 rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl space-y-4">
       <div class="flex items-center gap-3 text-rose-500">
-        <i class="fa-solid fa-circle-exclamation text-3xl"></i>
-        <h3 class="text-lg font-bold text-slate-800">알림</h3>
+        <i class="fa-solid fa-triangle-exclamation text-3xl"></i>
+        <h3 class="text-lg font-bold">알림</h3>
       </div>
-      <p id="alert-message" class="text-sm text-slate-600">출발역과 도착역을 정확하게 지정해주십시오.</p>
-      <button id="alert-close" class="w-full py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-xl transition text-sm font-bold shadow-md">
+      <p id="alert-message" class="text-sm text-slate-600">출발역과 도착역을 정확히 지정해주십시오.</p>
+      <button id="alert-close" class="w-full py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition text-sm font-semibold shadow-sm">
         확인
       </button>
     </div>
@@ -205,8 +195,11 @@
 
   <script>
     // --- SUBWAY SYSTEM METADATA AND GRAPH DEFINITIONS ---
-    // 24 Lines config including all Light Rails (경전철)
-    const LINES = {
+    let STATIONS = {};
+    let CONNECTIONS = [];
+    let CURRENT_REGION = 'seoul';
+
+    const SEOUL_LINES = {
       "line1":  { name: "1호선", color: "#0052A4" },
       "line2":  { name: "2호선", color: "#00A84D" },
       "line3":  { name: "3호선", color: "#EF7C1C" },
@@ -233,12 +226,19 @@
       "gtx-a": { name: "GTX-A", color: "#9E2A2B" }
     };
 
-    // Database of stations for Dijkstra Routing Calculations (Dynamically Generated)
-    const STATIONS = {};
-    const CONNECTIONS = [];
+    const BUSAN_LINES = {
+      "busan1": { name: "부산1호선", color: "#F06A00" },
+      "busan2": { name: "부산2호선", color: "#81C147" },
+      "busan3": { name: "부산3호선", color: "#C8A061" },
+      "busan4": { name: "부산4호선", color: "#0070C0" },
+      "bgl": { name: "부산김해경전철", color: "#882894" },
+      "donghae": { name: "동해선", color: "#003DA5" }
+    };
 
-    // Compact String Notation for ~700 Stations Network (Dramatically saves footprint)
-    const rawNetwork = {
+    let LINES = SEOUL_LINES;
+
+    // Compact String Notation for Network Database (Seoul: ~700, Busan: ~150)
+    const SEOUL_NETWORK = {
       "line1": ["연천-전곡-청산-소요산-동두천-보산-동두천중앙-지행-덕정-덕계-양주-녹양-가능-의정부-회룡-망월사-도봉산-도봉-방학-창동-녹천-월계-광운대-석계-신이문-외대앞-회기-청량리-제기동-신설동-동묘앞-동대문-종로5가-종로3가-종각-시청-서울-남영-용산-노량진-대방-신길-영등포-신도림-구로-구일-개봉-오류동-온수-역곡-소사-부천-중동-송내-부개-부평-백운-동암-간석-주안-도화-제물포-도원-동인천-인천"],
       "line1_1": ["구로-가산디지털단지-독산-금천구청-석수-관악-안양-명학-금정-군포-당정-의왕-성균관대-화서-수원-세류-병점-세마-오산대-오산-진위-송탄-서정리-평택지제-평택-성환-직산-두정-천안-봉명-쌍용-아산-탕정-배방-온양온천-신창"],
       "line1_2": ["금천구청-광명"],
@@ -247,7 +247,7 @@
       "line2_1": ["성수-용답-신답-용두-신설동"],
       "line2_2": ["신도림-도림천-양천구청-신정네거리-까치산"],
       "line3": ["대화-주엽-정발산-마두-백석-대곡-화정-원당-원흥-삼송-지축-구파발-연신내-불광-녹번-홍제-무악재-독립문-경복궁-안국-종로3가-을지로3가-충무로-동대입구-약수-금호-옥수-압구정-신사-잠원-고속터미널-교대-남부터미널-양재-매봉-도곡-대치-학여울-대청-일원-수서-가락시장-경찰병원-오금"],
-      "line4": ["진접-오남-별내별가람-불암산-상계-노원-창동-쌍문-수유-미아-미아사거리-길음-성신여대입구-한성대입구-혜화-동대문-동대문역사문화공원-충무로-명동-회현-서울-숙대입구-삼각지-신용산-이촌-동작-총신대입구(이수)-사당-남태령-선바위-경마공원-대공원-과천-정부과천청사-인덕원-평촌-범계-금정-산본-수리산-대야미-반월-상록수-한대앞-중앙-고잔-초지-안산-신길온천-정왕-오이도"],
+      "line4": ["진접-오남-별내별가람-당고개-상계-노원-창동-쌍문-수유-미아-미아사거리-길음-성신여대입구-한성대입구-혜화-동대문-동대문역사문화공원-충무로-명동-회현-서울-숙대입구-삼각지-신용산-이촌-동작-총신대입구(이수)-사당-남태령-선바위-경마공원-대공원-과천-정부과천청사-인덕원-평촌-범계-금정-산본-수리산-대야미-반월-상록수-한대앞-중앙-고잔-초지-안산-신길온천-정왕-오이도"],
       "line5": ["방화-개화산-김포공항-송정-마곡-발산-우장산-화곡-까치산-신정-목동-오목교-양평(5호선)-영등포구청-영등포시장-신길-여의도-여의나루-마포-공덕-애오개-충정로-서대문-광화문-종로3가-을지로4가-동대문역사문화공원-청구-신금호-행당-왕십리-마장-답십리-장한평-군자-아차산-광나루-천호-강동-길동-굽은다리-명일-고덕-상일동-강일-미사-하남풍산-하남시청-하남검단산"],
       "line5_1": ["강동-둔촌동-올림픽공원-방이-오금-개롱-거여-마천"],
       "line6": ["응암-역촌-불광-독바위-연신내-구산-응암-새절-증산-디지털미디어시티-월드컵경기장-마포구청-망원-합정-상수-광흥창-대흥-공덕-효창공원앞-삼각지-녹사평-이태원-한강진-버티고개-약수-청구-신당-동묘앞-창신-보문-안암-고려대-월곡-상월곡-돌곶이-석계-태릉입구-화랑대-봉화산-신내"],
@@ -272,40 +272,96 @@
       "gtx-a": ["운정중앙-킨텍스-대곡-연신내-서울-수서-성남-구성-동탄"]
     };
 
-    // Parser: Dynamically populates STATIONS and CONNECTIONS
-    Object.keys(rawNetwork).forEach(key => {
-      let baseLine = key.replace(/_.*$/, "");
-      rawNetwork[key].forEach(pathStr => {
-        const stops = pathStr.split("-");
-        for (let i = 0; i < stops.length; i++) {
-          const sName = stops[i];
-          
-          if (!STATIONS[sName]) {
-            STATIONS[sName] = { name: sName, lines: [] };
-          }
-          // Prevent duplicates in lines array
-          if (!STATIONS[sName].lines.includes(baseLine)) {
-            STATIONS[sName].lines.push(baseLine);
-          }
-          
-          // Bidirectional edge creation for routing
-          if (i < stops.length - 1) {
-            CONNECTIONS.push({
-              from: sName,
-              to: stops[i+1],
-              line: baseLine
-            });
-          }
-        }
-      });
-    });
+    const BUSAN_NETWORK = {
+      "busan1": ["다대포해수욕장-다대포항-낫개-신장림-장림-동매-신평-하단-당리-사하-괴정-대티-서대신-동대신-토성-자갈치-남포-중앙-부산역-초량-부산진-좌천-범일-범내골-서면-부전-양정-시청(부산)-연산-교대(부산)-동래(부산)-명륜-온천장-부산대-장전-구서-두실-남산-범어사-노포"],
+      "busan2": ["장산-중동-해운대-동백-벡스코-센텀시티-민락-수영-광안-금련산-남천-경성대·부경대-대연-못골-지게골-문현-국제금융센터·부산은행-전포-서면-부암-가야-동의대-개금-냉정-주례-감전-사상-덕포-모덕-모라-구남-구명-덕천-수정-화명-율리-동원-금곡-호포-증산-남양산-부산대양산캠퍼스-양산"],
+      "busan3": ["수영-망미-배산-물만골-연산-거제-종합운동장(부산)-사직-미남-만덕-남산정-숙등-덕천-구포-강서구청-체육공원-대저"],
+      "busan4": ["미남-동래(부산)-수안-낙민-충렬사-명장-서동-금사-반여농산물시장-석대-영산대-동부산대학-고촌-안평"],
+      "bgl": ["사상-괘법르네시떼-서부산유통지구-공항-덕두-등구-대저-평강-대사-불암-지내-김해대학-인제대-김해시청-부원-봉황-수로왕릉-박물관-연지공원-장신대-가야대"],
+      "donghae": ["부전-거제해맞이-거제-교대(부산)-동래(동해선)-안락-부산원동-재송-센텀-벡스코-신해운대-송정-오시리아-기장-일광-좌천(동해선)-월내-서생-남창-망양-덕하-개운포-태화강"]
+    };
 
-    // --- DEFENSIVE STRIIPING HELPER TO AVOID "역역" DUPLICATIONS ---
+    const MAP_IMAGES = {
+      "seoul": "https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdna%2FelsHz7%2FdJMcaiaXtuH%2FAAAAAAAAAAAAAAAAAAAAAMi-J6NXVzAcAfMYo5x1Q5AvkVw_urEeTHT9Z4Qyz3pk%2Fimg.jpg%3Fcredential%3DyqXZFxpELC7KVnFOS48ylbz2pIh7yKj8%26expires%3D1782831599%26allow_ip%3D%26allow_referer%3D%26signature%3DdKZKKjdlAtv2Yerf7fMgq1A1L9U%253D",
+      "busan": "https://i.namu.wiki/i/t9mHLJPlaLM_ynT-S57nyQ_ToxL3r5wi7qKmRGFdDpPMDv8UtJ1_g7CNYhimc1LqIgfb7D2Upmj3Kw5EDGpn4A.svg"
+    };
+
+    // Parser: Dynamically populates STATIONS and CONNECTIONS based on selected Region
+    function buildGraph(networkData, linesData) {
+      STATIONS = {};
+      CONNECTIONS = [];
+      LINES = linesData;
+
+      Object.keys(networkData).forEach(key => {
+        let baseLine = key.replace(/_.*$/, "");
+        networkData[key].forEach(pathStr => {
+          const stops = pathStr.split("-");
+          for (let i = 0; i < stops.length; i++) {
+            const sName = stops[i];
+            
+            if (!STATIONS[sName]) {
+              STATIONS[sName] = { name: sName, lines: [] };
+            }
+            // Prevent duplicates in lines array
+            if (!STATIONS[sName].lines.includes(baseLine)) {
+              STATIONS[sName].lines.push(baseLine);
+            }
+            
+            // Bidirectional edge creation for routing
+            if (i < stops.length - 1) {
+              CONNECTIONS.push({
+                from: sName,
+                to: stops[i+1],
+                line: baseLine
+              });
+            }
+          }
+        });
+      });
+    }
+
+    // Initialize Graph with default Seoul Data
+    buildGraph(SEOUL_NETWORK, SEOUL_LINES);
+
+    window.switchRegion = function(region) {
+      if (CURRENT_REGION === region) return;
+      CURRENT_REGION = region;
+
+      const btnSeoul = document.getElementById('btn-seoul');
+      const btnBusan = document.getElementById('btn-busan');
+      
+      if(region === 'seoul') {
+        buildGraph(SEOUL_NETWORK, SEOUL_LINES);
+        btnSeoul.className = "flex-1 py-1.5 text-xs font-bold rounded-md transition-all shadow-sm bg-white text-slate-900";
+        btnBusan.className = "flex-1 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-900";
+      } else {
+        buildGraph(BUSAN_NETWORK, BUSAN_LINES);
+        btnBusan.className = "flex-1 py-1.5 text-xs font-bold rounded-md transition-all shadow-sm bg-white text-slate-900";
+        btnSeoul.className = "flex-1 py-1.5 text-xs font-bold rounded-md transition-all text-slate-500 hover:text-slate-900";
+      }
+
+      // Reset routing inputs and results safely
+      try {
+        clearStartStation();
+        clearEndStation();
+        document.getElementById("route-result").classList.add("hidden");
+        document.getElementById("search-input").value = "";
+      } catch(e) {}
+
+      // Rebuild components & load image
+      loadMapImage();
+      renderLegend();
+    };
+
+    // DEFENSIVE STRIPING HELPER TO AVOID "역역" DUPLICATIONS
     function formatStationName(rawName) {
       if (!rawName) return "";
       let clean = rawName.trim();
-      // Safe parsing for names with parenthesis like "신촌(2호선)" -> "신촌역(2호선)"
-      return clean.replace(/(역)?(\(.*?\))?$/, (match, p1, p2) => "역" + (p2 || ""));
+      
+      // If name has bracket details like "신촌(2호선)", normalize correctly to "신촌역(2호선)"
+      return clean.replace(/^(.*?)(역)?(\s*\(.*?\))?$/, function(match, base, yeok, paren) {
+        return base + "역" + (paren || "");
+      });
     }
 
     function getSearchableName(rawName) {
@@ -313,114 +369,131 @@
       return rawName.trim().replace(/역/g, "").toLowerCase();
     }
 
-    // --- GLOBAL VIEWPORT AND APP CONFIG ---
-    const viewport = document.getElementById("image-viewport");
-    const mapImage = document.getElementById("map-image");
-    
-    const startInput = document.getElementById("start-input");
-    const startSuggest = document.getElementById("start-suggest");
-    const endInput = document.getElementById("end-input");
-    const endSuggest = document.getElementById("end-suggest");
-    
-    let scale = 0.45;
-    let panX = 50;
-    let panY = 50;
-    
+    // --- STREAMING_CHUNK: Implementing the anchor zoom and pan logic... ---
+    // VIEWPORT IMAGE ZOOM & PAN LOGIC
+    let scale = 1.0;
+    let panX = 0;
+    let panY = 0;
     let isDragging = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
+    let startX = 0, startY = 0;
 
-    let selectedStartKey = null;
-    let selectedEndKey = null;
+    // Track pinch details for mobile gestures
+    let touchStartDist = 0;
+    let imgXAtPinch = 0;
+    let imgYAtPinch = 0;
 
-    function showAlert(msg) {
-      document.getElementById("alert-message").innerText = msg;
-      document.getElementById("custom-alert").classList.remove("hidden");
-    }
-    document.getElementById("alert-close").addEventListener("click", () => {
-      document.getElementById("custom-alert").classList.add("hidden");
-    });
+    const mapContainer = document.getElementById('map-container');
+    const mapImg = document.getElementById('subway-img');
 
     function updateTransform() {
-      mapImage.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
+      mapImg.style.transform = `translate(${panX}px, ${panY}px) scale(${scale})`;
     }
 
-    function initViewerCenter() {
-      const containerWidth = viewport.clientWidth;
-      const containerHeight = viewport.clientHeight;
-      
-      scale = 0.5;
-      panX = (containerWidth - 1280 * scale) / 2;
-      panY = (containerHeight - 1280 * scale) / 2;
-      
+    // Calculate initial scale to center and fit the loaded map image perfectly
+    function centerImage() {
+      const containerWidth = mapContainer.clientWidth;
+      const containerHeight = mapContainer.clientHeight;
+      const imgWidth = mapImg.naturalWidth || mapImg.offsetWidth || 1500;
+      const imgHeight = mapImg.naturalHeight || mapImg.offsetHeight || 1500;
+
+      // Determine initial scale to fit gracefully (approx 85% of viewport width)
+      scale = (containerWidth / imgWidth) * 0.85;
+      scale = Math.max(0.15, Math.min(scale, 8.0));
+
+      panX = (containerWidth - imgWidth * scale) / 2;
+      panY = (containerHeight - imgHeight * scale) / 2;
       updateTransform();
     }
 
-    // --- VIEWPORT MOUSE AND TOUCH EVENTS ---
-    viewport.addEventListener("wheel", (e) => {
+    function loadMapImage() {
+      mapImg.src = MAP_IMAGES[CURRENT_REGION];
+      if (mapImg.complete) {
+        centerImage();
+      }
+    }
+
+    // Centering trigger when image load is finished
+    mapImg.onload = centerImage;
+    window.addEventListener('resize', centerImage);
+
+    // Mouse Panning Controls
+    mapContainer.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX - panX;
+      startY = e.clientY - panY;
+      mapContainer.style.cursor = 'grabbing';
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+      panX = e.clientX - startX;
+      panY = e.clientY - startY;
+      updateTransform();
+    });
+
+    window.addEventListener('mouseup', () => {
+      isDragging = false;
+      mapContainer.style.cursor = 'grab';
+    });
+
+    // Mathematically perfect anchor-based Zoom on Mouse Wheel
+    mapContainer.addEventListener('wheel', (e) => {
       e.preventDefault();
-      const zoomFactor = 1.1;
-      
-      const mouseX = e.clientX - viewport.getBoundingClientRect().left;
-      const mouseY = e.clientY - viewport.getBoundingClientRect().top;
+      const zoomFactor = 1.15;
+      const rect = mapContainer.getBoundingClientRect();
+      const mouseX = e.clientX - rect.left;
+      const mouseY = e.clientY - rect.top;
 
-      const imgPointX = (mouseX - panX) / scale;
-      const imgPointY = (mouseY - panY) / scale;
+      // Map coordinate under cursor before scaling
+      const imgX = (mouseX - panX) / scale;
+      const imgY = (mouseY - panY) / scale;
 
+      let newScale = scale;
       if (e.deltaY < 0) {
-        scale = Math.min(scale * zoomFactor, 3.5);
+        newScale = Math.min(scale * zoomFactor, 8.0);
       } else {
-        scale = Math.max(scale / zoomFactor, 0.15);
+        newScale = Math.max(scale / zoomFactor, 0.15);
       }
 
-      panX = mouseX - imgPointX * scale;
-      panY = mouseY - imgPointY * scale;
+      // Readjust translations so the same image coordinate remains exactly under cursor
+      panX = mouseX - imgX * newScale;
+      panY = mouseY - imgY * newScale;
+      scale = newScale;
 
       updateTransform();
     }, { passive: false });
 
-    viewport.addEventListener("mousedown", (e) => {
-      isDragging = true;
-      dragStartX = e.clientX - panX;
-      dragStartY = e.clientY - panY;
-      mapImage.classList.remove("smooth-transition");
-    });
-
-    window.addEventListener("mousemove", (e) => {
-      if (!isDragging) return;
-      panX = e.clientX - dragStartX;
-      panY = e.clientY - dragStartY;
-      updateTransform();
-    });
-
-    window.addEventListener("mouseup", () => {
-      if (isDragging) {
-        isDragging = false;
-        mapImage.classList.add("smooth-transition");
-      }
-    });
-
-    // Touch Support (Pinch & Pan) for Mobile Devices
-    let touchStartDist = 0;
-    viewport.addEventListener("touchstart", (e) => {
-      mapImage.classList.remove("smooth-transition");
+    // Multi-touch Pinch Zoom and Drag controls for Mobile viewports
+    mapContainer.addEventListener('touchstart', (e) => {
       if (e.touches.length === 1) {
         isDragging = true;
-        dragStartX = e.touches[0].clientX - panX;
-        dragStartY = e.touches[0].clientY - panY;
+        startX = e.touches[0].clientX - panX;
+        startY = e.touches[0].clientY - panY;
       } else if (e.touches.length === 2) {
         isDragging = false;
         touchStartDist = Math.hypot(
           e.touches[0].clientX - e.touches[1].clientX,
           e.touches[0].clientY - e.touches[1].clientY
         );
+
+        // Find midpoint of pinch touch coordinates
+        const touchStartMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const touchStartMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const rect = mapContainer.getBoundingClientRect();
+        
+        const midX = touchStartMidX - rect.left;
+        const midY = touchStartMidY - rect.top;
+
+        // Remember the underlying image point for perfect pinch-anchoring
+        imgXAtPinch = (midX - panX) / scale;
+        imgYAtPinch = (midY - panY) / scale;
       }
     });
 
-    viewport.addEventListener("touchmove", (e) => {
+    mapContainer.addEventListener('touchmove', (e) => {
       if (isDragging && e.touches.length === 1) {
-        panX = e.touches[0].clientX - dragStartX;
-        panY = e.touches[0].clientY - dragStartY;
+        panX = e.touches[0].clientX - startX;
+        panY = e.touches[0].clientY - startY;
         updateTransform();
       } else if (e.touches.length === 2) {
         const dist = Math.hypot(
@@ -428,75 +501,75 @@
           e.touches[0].clientY - e.touches[1].clientY
         );
         const factor = dist / touchStartDist;
-        
-        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - viewport.getBoundingClientRect().left;
-        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - viewport.getBoundingClientRect().top;
-        
-        const imgPointX = (midX - panX) / scale;
-        const imgPointY = (midY - panY) / scale;
+        const newScale = Math.max(0.15, Math.min(scale * factor, 8.0));
 
-        scale = Math.max(0.15, Math.min(scale * factor, 3.5));
+        // Midpoint of current fingers
+        const currentMidX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+        const currentMidY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        const rect = mapContainer.getBoundingClientRect();
         
-        panX = midX - imgPointX * scale;
-        panY = midY - imgPointY * scale;
+        const midX = currentMidX - rect.left;
+        const midY = currentMidY - rect.top;
 
+        // Lock midpoint positions mathematically
+        panX = midX - imgXAtPinch * newScale;
+        panY = midY - imgYAtPinch * newScale;
+        
+        scale = newScale;
         touchStartDist = dist;
         updateTransform();
       }
     });
 
-    viewport.addEventListener("touchend", () => {
+    mapContainer.addEventListener('touchend', () => {
       isDragging = false;
-      mapImage.classList.add("smooth-transition");
     });
 
-    // Interactive Buttons
+    // Control buttons events (Zooms relative to viewport center)
     document.getElementById("zoom-in").addEventListener("click", () => {
-      const zoomFactor = 1.3;
-      const midX = viewport.clientWidth / 2;
-      const midY = viewport.clientHeight / 2;
-      const imgPointX = (midX - panX) / scale;
-      const imgPointY = (midY - panY) / scale;
-
-      scale = Math.min(scale * zoomFactor, 3.5);
-      panX = midX - imgPointX * scale;
-      panY = midY - imgPointY * scale;
+      const rect = mapContainer.getBoundingClientRect();
+      const midX = rect.width / 2;
+      const midY = rect.height / 2;
+      const imgX = (midX - panX) / scale;
+      const imgY = (midY - panY) / scale;
+      
+      scale = Math.min(scale * 1.3, 8.0);
+      panX = midX - imgX * scale;
+      panY = midY - imgY * scale;
       updateTransform();
     });
 
     document.getElementById("zoom-out").addEventListener("click", () => {
-      const zoomFactor = 1.3;
-      const midX = viewport.clientWidth / 2;
-      const midY = viewport.clientHeight / 2;
-      const imgPointX = (midX - panX) / scale;
-      const imgPointY = (midY - panY) / scale;
+      const rect = mapContainer.getBoundingClientRect();
+      const midX = rect.width / 2;
+      const midY = rect.height / 2;
+      const imgX = (midX - panX) / scale;
+      const imgY = (midY - panY) / scale;
 
-      scale = Math.max(scale / zoomFactor, 0.15);
-      panX = midX - imgPointX * scale;
-      panY = midY - imgPointY * scale;
+      scale = Math.max(scale / 1.3, 0.15);
+      panX = midX - imgX * scale;
+      panY = midY - imgY * scale;
       updateTransform();
     });
 
     document.getElementById("zoom-reset").addEventListener("click", () => {
-      initViewerCenter();
+      centerImage();
     });
 
-    // --- DIJKSTRA PATHFINDING SERVICE ---
+    // --- DIJKSTRA PATHFINDING CALCULATIONS ENGINE ---
     function buildAdjacencyList() {
       const graph = {};
       Object.keys(STATIONS).forEach(key => {
         graph[key] = [];
       });
-
       CONNECTIONS.forEach(conn => {
         graph[conn.from].push({ to: conn.to, weight: 2.5, line: conn.line });
         graph[conn.to].push({ to: conn.from, weight: 2.5, line: conn.line });
       });
-
       return graph;
     }
 
-    function calculateShortestPath(startKey, endKey) {
+    function findShortestPath(startKey, endKey) {
       const graph = buildAdjacencyList();
       const distances = {};
       const previous = {};
@@ -523,9 +596,10 @@
         for (const edge of neighbors) {
           let edgeWeight = edge.weight;
 
-          const currentIncomingLine = previousLine[currNode];
-          if (currentIncomingLine && currentIncomingLine !== edge.line) {
-            edgeWeight += 5.0; // Transfer overhead time penalty (5 mins)
+          // Introduce transfer overhead dynamically (5 mins penalty)
+          const incomingLine = previousLine[currNode];
+          if (incomingLine && incomingLine !== edge.line) {
+            edgeWeight += 5.0;
           }
 
           const alt = distances[currNode] + edgeWeight;
@@ -569,183 +643,206 @@
       };
     }
 
-    // --- AUTOCOMPLETE & INPUT VALIDATOR SYSTEM ---
-    function setupAutocomplete(inputElement, suggestElement, selectCallback) {
-      inputElement.addEventListener("input", (e) => {
-        const q = getSearchableName(e.target.value);
-        if (!q) {
-          suggestElement.classList.add("hidden");
-          return;
-        }
+    // --- UX INTERACTION & AUTOCOMPLETE SEARCH LOGIC ---
+    let startStationKey = null;
+    let endStationKey = null;
 
-        const filtered = Object.entries(STATIONS).filter(([key, val]) => {
-          const nameClean = getSearchableName(val.name);
-          return nameClean.includes(q);
-        }).slice(0, 7);
+    function showAlert(msg) {
+      document.getElementById("alert-message").innerText = msg;
+      document.getElementById("custom-alert").classList.remove("hidden");
+    }
+    document.getElementById("alert-close").addEventListener("click", () => {
+      document.getElementById("custom-alert").classList.add("hidden");
+    });
 
-        if (filtered.length === 0) {
-          suggestElement.innerHTML = `<div class="p-3 text-xs text-slate-400 font-semibold text-center">결과를 찾지 못했습니다.</div>`;
-        } else {
-          suggestElement.innerHTML = "";
-          filtered.forEach(([key, val]) => {
-            const item = document.createElement("div");
-            item.className = "p-2.5 text-sm hover:bg-slate-50 cursor-pointer transition-all flex justify-between items-center border-b border-slate-100 last:border-0";
-            
-            let lineBadges = "";
-            val.lines.forEach(lineKey => {
-              const lMeta = LINES[lineKey];
-              if (lMeta) {
-                lineBadges += `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] text-white font-bold mr-0.5" style="background-color: ${lMeta.color}">${lMeta.name}</span>`;
-              }
-            });
+    function setStartStation(key) {
+      startStationKey = key;
+      document.getElementById("start-station-input").value = formatStationName(STATIONS[key].name);
+    }
 
-            // Prevent duplicate "역역" in rendering list items
-            const finalNodeName = formatStationName(val.name);
+    function setEndStation(key) {
+      endStationKey = key;
+      document.getElementById("end-station-input").value = formatStationName(STATIONS[key].name);
+    }
 
-            item.innerHTML = `
-              <span class="font-bold text-slate-700">${finalNodeName}</span>
-              <div class="flex items-center">${lineBadges}</div>
-            `;
+    function clearStartStation() {
+      startStationKey = null;
+      document.getElementById("start-station-input").value = "";
+    }
 
-            item.addEventListener("click", () => {
-              inputElement.value = finalNodeName;
-              suggestElement.classList.add("hidden");
-              selectCallback(key);
-            });
-            suggestElement.appendChild(item);
-          });
-        }
-        suggestElement.classList.remove("hidden");
-      });
+    function clearEndStation() {
+      endStationKey = null;
+      document.getElementById("end-station-input").value = "";
+    }
 
-      document.addEventListener("click", (e) => {
-        if (!inputElement.contains(e.target) && !suggestElement.contains(e.target)) {
-          suggestElement.classList.add("hidden");
-        }
+    // Dynamic Legend Renderer
+    function renderLegend() {
+      const container = document.getElementById("legend-container");
+      container.innerHTML = "";
+      Object.entries(LINES).forEach(([key, value]) => {
+        const item = document.createElement("div");
+        item.className = "flex items-center gap-1.5 p-1 bg-white border border-slate-100 rounded-md shadow-sm";
+        item.innerHTML = `
+          <span class="w-2.5 h-2.5 rounded-full shrink-0" style="background-color: ${value.color}"></span>
+          <span class="truncate text-[11px] text-slate-700 font-medium">${value.name}</span>
+        `;
+        container.appendChild(item);
       });
     }
 
-    // Assigning autocompletes
-    setupAutocomplete(startInput, startSuggest, (key) => {
-      selectedStartKey = key;
+    // Search Box Dropdown & Dynamic Auto-suggest Event
+    const searchInput = document.getElementById("search-input");
+    const searchSuggest = document.getElementById("search-suggest");
+
+    searchInput.addEventListener("input", (e) => {
+      const query = getSearchableName(e.target.value);
+      if (!query) {
+        searchSuggest.classList.add("hidden");
+        return;
+      }
+
+      const filtered = Object.entries(STATIONS).filter(([key, value]) => {
+        return getSearchableName(value.name).includes(query);
+      }).slice(0, 8);
+
+      if (filtered.length === 0) {
+        searchSuggest.innerHTML = `<div class="p-3 text-xs text-slate-400">검색 결과가 없습니다.</div>`;
+      } else {
+        searchSuggest.innerHTML = "";
+        filtered.forEach(([key, value]) => {
+          const item = document.createElement("div");
+          item.className = "p-3 text-xs hover:bg-slate-50 cursor-pointer transition flex justify-between items-center border-b border-slate-100 last:border-0";
+          
+          let lineBadges = "";
+          value.lines.forEach(lineKey => {
+            const lineMeta = LINES[lineKey];
+            if (lineMeta) {
+              lineBadges += `<span class="inline-block px-1.5 py-0.5 rounded text-[9px] text-white font-bold mr-1 shrink-0" style="background-color: ${lineMeta.color}">${lineMeta.name}</span>`;
+            }
+          });
+
+          item.innerHTML = `
+            <span class="font-bold text-slate-700">${formatStationName(value.name)}</span>
+            <div class="flex items-center overflow-x-auto max-w-[120px]">${lineBadges}</div>
+          `;
+
+          item.addEventListener("click", () => {
+            searchInput.value = "";
+            searchSuggest.classList.add("hidden");
+            
+            // Set Start first. If start exists, set End.
+            if (!startStationKey) {
+              setStartStation(key);
+            } else if (!endStationKey) {
+              if (key === startStationKey) {
+                showAlert("출발역과 도착역은 같을 수 없습니다.");
+                return;
+              }
+              setEndStation(key);
+            } else {
+              setStartStation(key);
+              clearEndStation();
+            }
+          });
+          searchSuggest.appendChild(item);
+        });
+      }
+      searchSuggest.classList.remove("hidden");
     });
 
-    setupAutocomplete(endInput, endSuggest, (key) => {
-      selectedEndKey = key;
+    document.addEventListener("click", (e) => {
+      if (!searchInput.contains(e.target) && !searchSuggest.contains(e.target)) {
+        searchSuggest.classList.add("hidden");
+      }
     });
 
-    // Swap stations values securely without duplicate naming
+    // Swap Source & Destination Event Listener
     document.getElementById("btn-swap-stations").addEventListener("click", () => {
-      const tempKey = selectedStartKey;
-      const tempVal = startInput.value;
-
-      selectedStartKey = selectedEndKey;
-      startInput.value = endInput.value;
-
-      selectedEndKey = tempKey;
-      endInput.value = tempVal;
+      const sTemp = startStationKey;
+      const eTemp = endStationKey;
+      clearStartStation();
+      clearEndStation();
+      if (eTemp) setStartStation(eTemp);
+      if (sTemp) setEndStation(sTemp);
     });
 
     // Reset Route Planner
     document.getElementById("btn-reset-route").addEventListener("click", () => {
-      selectedStartKey = null;
-      selectedEndKey = null;
-      startInput.value = "";
-      endInput.value = "";
+      clearStartStation();
+      clearEndStation();
       document.getElementById("route-result").classList.add("hidden");
     });
 
-    // Trigger Route Search
+    // Route Calculation Trigger
     document.getElementById("btn-find-route").addEventListener("click", () => {
-      if (!selectedStartKey || !selectedEndKey) {
-        showAlert("출발역과 도착역을 모두 올바르게 입력해야 경로 탐색이 가능합니다.");
-        return;
-      }
-      if (selectedStartKey === selectedEndKey) {
-        showAlert("출발역과 도착역은 같을 수 없습니다.");
+      if (!startStationKey || !endStationKey) {
+        showAlert("출발역과 도착역을 지정하셔야 경로 탐색이 가능합니다.");
         return;
       }
 
-      const routeResult = calculateShortestPath(selectedStartKey, selectedEndKey);
+      const routeResult = findShortestPath(startStationKey, endStationKey);
       if (!routeResult) {
-        showAlert("선택한 경로 사이에 유효한 철도 연결망이 존재하지 않습니다.");
+        showAlert("경로를 탐색할 수 없습니다.");
         return;
       }
 
-      // Compute statistics
+      renderRoutingResults(routeResult);
+    });
+
+    function renderRoutingResults(route) {
       let transfers = 0;
       let prevLine = null;
       let realTimeEstimate = 0;
 
-      routeResult.edges.forEach((edge, i) => {
+      route.edges.forEach((edge, i) => {
         if (i > 0 && edge.line !== prevLine) {
           transfers++;
-          realTimeEstimate += 4; // Transfer penalty applied
+          realTimeEstimate += 4.5; // Adding transfer walk penalty
         }
-        realTimeEstimate += 2.5; // Avg section traverse estimate
+        realTimeEstimate += 2.5; // Average station-to-station gap
         prevLine = edge.line;
       });
 
+      // Update Panel metrics
       document.getElementById("route-time").innerText = `${Math.ceil(realTimeEstimate)}분`;
-      document.getElementById("route-stops").innerText = `${routeResult.stopsCount}개 역`;
+      document.getElementById("route-stops").innerText = `${route.stopsCount}개 역`;
       document.getElementById("route-transfers").innerText = `${transfers}회`;
 
-      const listContainer = document.getElementById("route-path-list");
-      listContainer.innerHTML = "";
+      // Fill Detailed Steps
+      const pathList = document.getElementById("route-path-list");
+      pathList.innerHTML = "";
 
-      // Append route logs beautifully
-      routeResult.path.forEach((stationKey, index) => {
+      route.path.forEach((stationKey, index) => {
         const station = STATIONS[stationKey];
-        const stepDiv = document.createElement("div");
-        stepDiv.className = "flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0";
-        
-        let edgeLineBadge = "";
-        if (index < routeResult.path.length - 1) {
-          const nextEdge = routeResult.edges[index];
-          const lineMeta = LINES[nextEdge.line];
-          edgeLineBadge = `<span class="px-2 py-0.5 rounded text-[9px] text-white font-bold" style="background-color: ${lineMeta?.color}">${lineMeta?.name} 승차</span>`;
+        const step = document.createElement("div");
+        step.className = "flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0";
+
+        let currentStatusBadge = "";
+        if (index < route.path.length - 1) {
+          const edge = route.edges[index];
+          const lineMeta = LINES[edge.line];
+          currentStatusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] text-white font-bold" style="background-color: ${lineMeta?.color}">${lineMeta?.name} 승차</span>`;
         } else {
-          edgeLineBadge = `<span class="px-2 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-bold">도착</span>`;
+          currentStatusBadge = `<span class="px-1.5 py-0.5 rounded text-[9px] bg-emerald-100 text-emerald-800 font-bold">도착</span>`;
         }
 
-        // Apply defensive formatting here to avoid duplication
-        const formattedName = formatStationName(station.name);
-
-        stepDiv.innerHTML = `
-          <div class="flex items-center gap-1.5">
-            <span class="w-2.5 h-2.5 rounded-full ${index === 0 ? 'bg-emerald-500' : (index === routeResult.path.length-1 ? 'bg-rose-500' : 'bg-slate-300')} shadow-sm"></span>
-            <span class="font-extrabold text-slate-700">${formattedName}</span>
+        step.innerHTML = `
+          <div class="flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full ${index === 0 ? 'bg-indigo-600' : (index === route.path.length-1 ? 'bg-rose-500' : 'bg-slate-300')}"></span>
+            <span class="font-bold text-slate-700">${formatStationName(station.name)}</span>
           </div>
-          <div>${edgeLineBadge}</div>
+          <div>${currentStatusBadge}</div>
         `;
-        listContainer.appendChild(stepDiv);
+        pathList.appendChild(step);
       });
 
       document.getElementById("route-result").classList.remove("hidden");
-    });
-
-    // Render legend guides dynamically
-    function renderLegends() {
-      const legendContainer = document.getElementById("legend-container");
-      Object.entries(LINES).forEach(([key, value]) => {
-        const item = document.createElement("div");
-        item.className = "flex items-center gap-2 p-2 rounded-xl bg-white border border-slate-100 shadow-sm";
-        item.innerHTML = `
-          <span class="w-2.5 h-2.5 rounded-full shrink-0 shadow-inner" style="background-color: ${value.color}"></span>
-          <span class="truncate font-bold text-slate-600 text-[10.5px]">${value.name}</span>
-        `;
-        legendContainer.appendChild(item);
-      });
     }
 
-    // Window Init Event Loop trigger
-    window.onload = function () {
-      renderLegends();
-      initViewerCenter();
-      
-      window.addEventListener("resize", () => {
-        updateTransform();
-      });
+    // On Load Initial Setup
+    window.onload = function() {
+      loadMapImage();
+      renderLegend();
     };
   </script>
 </body>
